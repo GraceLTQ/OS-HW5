@@ -1,12 +1,10 @@
-module bdeque_impl;
-
-import Lock, Condition from synch;
+from synch import Lock, Condition;
 
 type Bdeque = record {
     lock: Lock,
     notFull: Condition,
     notEmpty: Condition,
-    items: array of int, // Change 'int' to your data type
+    items: array of any, // Adjust the type as needed
     capacity: int,
     size: int,
     head: int,
@@ -17,7 +15,7 @@ function Bdeque(n: int): Bdeque {
     return Bdeque{Lock(), Condition(), Condition(), [None] * n, n, 0, 0, 0};
 }
 
-function put_left(d: Bdeque, v: int) {
+function put_left(d: Bdeque, v: any) {
     acquire d.lock;
     while d.size == d.capacity {
         wait d.notFull, d.lock;
@@ -29,7 +27,7 @@ function put_left(d: Bdeque, v: int) {
     release d.lock;
 }
 
-function put_right(d: Bdeque, v: int) {
+function put_right(d: Bdeque, v: any) {
     acquire d.lock;
     while d.size == d.capacity {
         wait d.notFull, d.lock;
@@ -41,7 +39,7 @@ function put_right(d: Bdeque, v: int) {
     release d.lock;
 }
 
-function get_left(d: Bdeque): int {
+function get_left(d: Bdeque): any {
     acquire d.lock;
     while d.size == 0 {
         wait d.notEmpty, d.lock;
@@ -54,7 +52,7 @@ function get_left(d: Bdeque): int {
     return result;
 }
 
-function get_right(d: Bdeque): int {
+function get_right(d: Bdeque): any {
     acquire d.lock;
     while d.size == 0 {
         wait d.notEmpty, d.lock;
@@ -67,7 +65,7 @@ function get_right(d: Bdeque): int {
     return result;
 }
 
-function peek_left(d: Bdeque): int {
+function peek_left(d: Bdeque): any {
     acquire d.lock;
     while d.size == 0 {
         wait d.notEmpty, d.lock;
@@ -77,12 +75,11 @@ function peek_left(d: Bdeque): int {
     return result;
 }
 
-function peek_right(d: Bdeque): int {
+function peek_right(d: Bdeque): any {
     acquire d.lock;
     while d.size == 0 {
         wait d.notEmpty, d.lock;
     }
-    // Adjusting for zero-based index access
     val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
     val result = d.items[tailIndex];
     release d.lock;
