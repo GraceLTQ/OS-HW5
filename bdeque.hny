@@ -1,13 +1,10 @@
-module bdeque_spec;
-
-synch import Lock;
-import Condition from synch;
+from synch import Lock, Condition;
 
 type Bdeque = record {
     lock: Lock,
     notFull: Condition,
     notEmpty: Condition,
-    items: array of int, // Change 'int' to your data type
+    items: array of any, // Adjust the type as needed
     capacity: int,
     size: int,
     head: int,
@@ -18,7 +15,7 @@ function Bdeque(n: int): Bdeque {
     return Bdeque{Lock(), Condition(), Condition(), [None] * n, n, 0, 0, 0};
 }
 
-atomic function put_left(d: Bdeque, v: int) {
+atomic function put_left(d: Bdeque, v: any) {
     if d.size == d.capacity {
         wait d.notFull, d.lock;
     }
@@ -28,7 +25,7 @@ atomic function put_left(d: Bdeque, v: int) {
     notify d.notEmpty;
 }
 
-atomic function put_right(d: Bdeque, v: int) {
+atomic function put_right(d: Bdeque, v: any) {
     if d.size == d.capacity {
         wait d.notFull, d.lock;
     }
@@ -38,7 +35,7 @@ atomic function put_right(d: Bdeque, v: int) {
     notify d.notEmpty;
 }
 
-atomic function get_left(d: Bdeque): int {
+atomic function get_left(d: Bdeque): any {
     if d.size == 0 {
         wait d.notEmpty, d.lock;
     }
@@ -49,7 +46,7 @@ atomic function get_left(d: Bdeque): int {
     return result;
 }
 
-atomic function get_right(d: Bdeque): int {
+atomic function get_right(d: Bdeque): any {
     if d.size == 0 {
         wait d.notEmpty, d.lock;
     }
@@ -60,18 +57,17 @@ atomic function get_right(d: Bdeque): int {
     return result;
 }
 
-atomic function peek_left(d: Bdeque): int {
+atomic function peek_left(d: Bdeque): any {
     if d.size == 0 {
         wait d.notEmpty, d.lock;
     }
     return d.items[d.head];
 }
 
-atomic function peek_right(d: Bdeque): int {
+atomic function peek_right(d: Bdeque): any {
     if d.size == 0 {
         wait d.notEmpty, d.lock;
     }
-    // Adjusting for zero-based index access
     val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
     return d.items[tailIndex];
 }
