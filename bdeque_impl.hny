@@ -1,0 +1,90 @@
+module bdeque_impl;
+
+import Lock, Condition from synch;
+
+type Bdeque = record {
+    lock: Lock,
+    notFull: Condition,
+    notEmpty: Condition,
+    items: array of int, // Change 'int' to your data type
+    capacity: int,
+    size: int,
+    head: int,
+    tail: int
+};
+
+function Bdeque(n: int): Bdeque {
+    return Bdeque{Lock(), Condition(), Condition(), [None] * n, n, 0, 0, 0};
+}
+
+function put_left(d: Bdeque, v: int) {
+    acquire d.lock;
+    while d.size == d.capacity {
+        wait d.notFull, d.lock;
+    }
+    d.head = (d.head - 1 + d.capacity) % d.capacity;
+    d.items[d.head] = v;
+    d.size += 1;
+    notify d.notEmpty;
+    release d.lock;
+}
+
+function put_right(d: Bdeque, v: int) {
+    acquire d.lock;
+    while d.size == d.capacity {
+        wait d.notFull, d.lock;
+    }
+    d.items[d.tail] = v;
+    d.tail = (d.tail + 1) % d.capacity;
+    d.size += 1;
+    notify d.notEmpty;
+    release d.lock;
+}
+
+function get_left(d: Bdeque): int {
+    acquire d.lock;
+    while d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    val result = d.items[d.head];
+    d.head = (d.head + 1) % d.capacity;
+    d.size -= 1;
+    notify d.notFull;
+    release d.lock;
+    return result;
+}
+
+function get_right(d: Bdeque): int {
+    acquire d.lock;
+    while d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    d.tail = (d.tail - 1 + d.capacity) % d.capacity;
+    val result = d.items[d.tail];
+    d.size -= 1;
+    notify d.notFull;
+    release d.lock;
+    return result;
+}
+
+function peek_left(d: Bdeque): int {
+    acquire d.lock;
+    while d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    val result = d.items[d.head];
+    release d.lock;
+    return result;
+}
+
+function peek_right(d: Bdeque): int {
+    acquire d.lock;
+    while d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    // Adjusting for zero-based index access
+    val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
+    val result = d.items[tailIndex];
+    release d.lock;
+    return result;
+}
