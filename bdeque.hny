@@ -60,4 +60,18 @@ atomic function get_right(d: Bdeque): int {
     return result;
 }
 
-// Peek functions would be similar to get functions but without removing the item.
+atomic function peek_left(d: Bdeque): int {
+    if d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    return d.items[d.head];
+}
+
+atomic function peek_right(d: Bdeque): int {
+    if d.size == 0 {
+        wait d.notEmpty, d.lock;
+    }
+    // Adjusting for zero-based index access
+    val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
+    return d.items[tailIndex];
+}
