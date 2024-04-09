@@ -1,73 +1,80 @@
 from synch import Lock, Condition;
 
-type Bdeque = record {
-    lock: Lock,
-    notFull: Condition,
-    notEmpty: Condition,
-    items: array of any, // Adjust the type as needed
-    capacity: int,
-    size: int,
-    head: int,
-    tail: int
-};
+def Bdeque(n) returns empty:
+    """
+    returns the initial value of an empty bdeque with at most n elements.
+    """
+    empty = [None] * n
 
-function Bdeque(n: int): Bdeque {
-    return Bdeque{Lock(), Condition(), Condition(), [None] * n, n, 0, 0, 0};
-}
+def put_left(d, v):
+    """
+    d points to a bdeque and v is some value. 
+    Put v at the left-end of the bdeque. 
+    Does not return a value. 
+    Should block if the bdeque is full.
+    """
+    # lst = list(!d)
+    if !d[-1] == None:
+        atomically !d = [v,] + subseq(!d, 0, len(!d) - 1)
 
-atomic function put_left(d: Bdeque, v: any) {
-    if d.size == d.capacity {
-        wait d.notFull, d.lock;
-    }
-    d.head = (d.head - 1 + d.capacity) % d.capacity;
-    d.items[d.head] = v;
-    d.size += 1;
-    notify d.notEmpty;
-}
+def put_right(d, v):
+    """
+    d points to a bdeque and v is some value. 
+    Put v at the right-end of the bdeque. 
+    Does not return a value. 
+    Should block if the bdeque is full.
+    """
+    if !d[-1] == None:
+        for i in range(len(!d)):
+            if !d[i] == None:
+                atomically !d[i] = v
+                break
 
-atomic function put_right(d: Bdeque, v: any) {
-    if d.size == d.capacity {
-        wait d.notFull, d.lock;
-    }
-    d.items[d.tail] = v;
-    d.tail = (d.tail + 1) % d.capacity;
-    d.size += 1;
-    notify d.notEmpty;
-}
+def get_left(d):
+    """
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should remove and return the value at the left-end of the bdeque.
+    """
+    await !d[0] != None
+    result = !d[0]
+    atomically !d = subseq(!d, 1, len(!d))
+    return result
 
-atomic function get_left(d: Bdeque): any {
-    if d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    val result = d.items[d.head];
-    d.head = (d.head + 1) % d.capacity;
-    d.size -= 1;
-    notify d.notFull;
-    return result;
-}
 
-atomic function get_right(d: Bdeque): any {
-    if d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    d.tail = (d.tail - 1 + d.capacity) % d.capacity;
-    val result = d.items[d.tail];
-    d.size -= 1;
-    notify d.notFull;
-    return result;
-}
 
-atomic function peek_left(d: Bdeque): any {
-    if d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    return d.items[d.head];
-}
+def get_right(d):
+    """
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should remove and return the value at the right-end of the bdeque.
+    """
+    await !d[0] != None
+    result = !d[-1]
+    atomically !d = subseq(!d, 0, len(!d) - 1)
+    return result
 
-atomic function peek_right(d: Bdeque): any {
-    if d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
-    return d.items[tailIndex];
-}
+def peek_left(d):
+    """
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should return the value at the left-end of the bdeque.
+    """
+    await !d[0] != None
+    result = !d[0]
+    return result
+
+def peek_right(d):
+    """
+    d points to a bdeque.
+    If the bdeque is empty, the operation should wait.
+    Otherwise it should return the value at the right-end of the bdeque.
+    """ 
+    await !d[0] != None
+    result = !d[-1]
+    return result
+
+
+
+
+

@@ -1,87 +1,107 @@
 from synch import Lock, Condition;
 
-type Bdeque = record {
-    lock: Lock,
-    notFull: Condition,
-    notEmpty: Condition,
-    items: array of any, // Adjust the type as needed
-    capacity: int,
-    size: int,
-    head: int,
-    tail: int
-};
-
-function Bdeque(n: int): Bdeque {
-    return Bdeque{Lock(), Condition(), Condition(), [None] * n, n, 0, 0, 0};
-}
-
-function put_left(d: Bdeque, v: any) {
-    acquire d.lock;
-    while d.size == d.capacity {
-        wait d.notFull, d.lock;
+def Bdeque() returns bd:
+    """
+    returns the initial value of an empty bdeque with at most n elements.
+    """
+    bd = {
+        .mutex: Lock(),
+        .if_full: Condition(),
+        .if_empty: Condition(),
+        .items: [None] * n,
+        .capacity: n,
+        .size: 0,
+        .head: 0,
+        .tail: 0
     }
-    d.head = (d.head - 1 + d.capacity) % d.capacity;
-    d.items[d.head] = v;
-    d.size += 1;
-    notify d.notEmpty;
-    release d.lock;
-}
 
-function put_right(d: Bdeque, v: any) {
-    acquire d.lock;
-    while d.size == d.capacity {
-        wait d.notFull, d.lock;
-    }
-    d.items[d.tail] = v;
-    d.tail = (d.tail + 1) % d.capacity;
-    d.size += 1;
-    notify d.notEmpty;
-    release d.lock;
-}
+def put_left(d, v):
+    """
+    d points to a bdeque and v is some value. 
+    Put v at the left-end of the bdeque. 
+    Does not return a value. 
+    Should block if the bdeque is full.
+    """
+    acquire(?d->mutex)
+    while d->size == d->capacity:
+        wait(?d->if_full, ?d->mutex)
+    d->head = ((d->head - 1) + d->capacity) % d->capacity
+    d->items[d->head] = v
+    d->size += 1
+    notify(?d->if_empty)
+    release(?d->mutex)
 
-function get_left(d: Bdeque): any {
-    acquire d.lock;
-    while d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    val result = d.items[d.head];
-    d.head = (d.head + 1) % d.capacity;
-    d.size -= 1;
-    notify d.notFull;
-    release d.lock;
-    return result;
-}
+def put_right(d, v):
+    """
+    d points to a bdeque and v is some value. 
+    Put v at the right-end of the bdeque. 
+    Does not return a value. 
+    Should block if the bdeque is full.
+    """
+    acquire(?d->mutex)
+    while d->size == d->capacity:
+        wait(?d->if_full, ?d->mutex)
+    d->items[d->tail] = v
+    d->tail = (d->tail + 1) % d->capacity
+    d->size += 1
+    notify(?d->if_empty)
+    release(?d->mutex)
 
-function get_right(d: Bdeque): any {
-    acquire d.lock;
-    while d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    d.tail = (d.tail - 1 + d.capacity) % d.capacity;
-    val result = d.items[d.tail];
-    d.size -= 1;
-    notify d.notFull;
-    release d.lock;
-    return result;
-}
+def get_left(d):
+    """
+    d points to a bdeque. If the bdeque is empty, the operation should wait. Otherwise it should remove and return the value at the left-end of the bdeque.
+    """
+    acquire(?d->mutex)
+    while d->size == 0:
+        wait(?d->if_empty, ?d->mutex)
+    result = d->items[d->head]
+    d->head = (d->head + 1) % d->capacity
+    d->size -= 1
+    notify(?d->if_full)
+    release(?d->mutex)
 
-function peek_left(d: Bdeque): any {
-    acquire d.lock;
-    while d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    val result = d.items[d.head];
-    release d.lock;
-    return result;
-}
+def get_right(d):
+    """
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should remove and return the value at the right-end of the bdeque.
+    """
+    acquire(?d->mutex)
+    while d->size == 0:
+        wait(?d->if_empty, ?d->mutex)
+    d->tail = ((d->tail - 1) + d->capacity) % d->capacity
+    result = d->items[d->tail]
+    d->size -= 1
+    notify(?d->if_full)
+    release(?d->mutex)
 
-function peek_right(d: Bdeque): any {
-    acquire d.lock;
-    while d.size == 0 {
-        wait d.notEmpty, d.lock;
-    }
-    val tailIndex = (d.tail - 1 + d.capacity) % d.capacity;
-    val result = d.items[tailIndex];
-    release d.lock;
-    return result;
-}
+def peek_left(d):
+    """
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should return the value at the left-end of the bdeque.
+    """
+    acquire(?d->mutex)
+    while d->size == 0:
+        wait(?d->if_empty, ?d->mutex)
+    result = d->items[d->head]
+    release(?d->mutex)
+    return result
+
+def peek_right(d):
+    """
+    d points to a bdeque.
+    If the bdeque is empty, the operation should wait.
+    Otherwise it should return the value at the right-end of the bdeque.
+    """ 
+    acquire(?d->mutex)
+    while d->size == 0:
+        wait(?d->if_empty, ?d->mutex)
+    result = d->items[((d->tail - 1) + d->capacity) % d->capacity]
+    release(?d->mutex)
+    return result
+
+
+
+
+
