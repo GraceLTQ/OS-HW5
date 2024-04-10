@@ -1,4 +1,5 @@
-from synch import Lock, Condition;
+from synch import *
+from list import subseq;
 
 def Bdeque(n) returns bd:
     """
@@ -8,11 +9,11 @@ def Bdeque(n) returns bd:
         .mutex: Lock(),
         .if_full: Condition(),
         .if_empty: Condition(),
-        .items: [None] * n,
+        .items: [None,] * n,
         .capacity: n,
         .size: 0,
         .head: 0,
-        .tail: 0
+        .tail: 1%n
     }
 
 def put_left(d, v):
@@ -23,10 +24,10 @@ def put_left(d, v):
     Should block if the bdeque is full.
     """
     acquire(?d->mutex)
-    while d->size == d->capacity:
+    while d->size >= d->capacity:
         wait(?d->if_full, ?d->mutex)
-    d->head = ((d->head - 1) + d->capacity) % d->capacity
     d->items[d->head] = v
+    d->head = ((d->head - 1) + d->capacity) % d->capacity
     d->size += 1
     notifyAll(?d->if_empty)
     release(?d->mutex)
@@ -39,7 +40,7 @@ def put_right(d, v):
     Should block if the bdeque is full.
     """
     acquire(?d->mutex)
-    while d->size == d->capacity:
+    while d->size >= d->capacity:
         wait(?d->if_full, ?d->mutex)
     d->items[d->tail] = v
     d->tail = (d->tail + 1) % d->capacity
@@ -56,8 +57,8 @@ def get_left(d) returns result:
     acquire(?d->mutex)
     while d->size == 0:
         wait(?d->if_empty, ?d->mutex)
-    result = d->items[d->head]
     d->head = (d->head + 1) % d->capacity
+    result = d->items[d->head]
     d->size -= 1
     notifyAll(?d->if_full)
     release(?d->mutex)
@@ -77,7 +78,7 @@ def get_right(d) returns result:
     notifyAll(?d->if_full)
     release(?d->mutex)
 
-def peek_left(d):
+def peek_left(d) returns result:
     """
     d points to a bdeque. 
     If the bdeque is empty, the operation should wait. 
@@ -86,12 +87,11 @@ def peek_left(d):
     acquire(?d->mutex)
     while d->size == 0:
         wait(?d->if_empty, ?d->mutex)
-    result = d->items[d->head]
-    release(?d->mutex)
+    result = d->items[(d->head + 1) % d->capacity]
     notify(?d->if_full)
-    return result
+    release(?d->mutex)
 
-def peek_right(d):
+def peek_right(d) returns result:
     """
     d points to a bdeque.
     If the bdeque is empty, the operation should wait.
@@ -101,9 +101,8 @@ def peek_right(d):
     while d->size == 0:
         wait(?d->if_empty, ?d->mutex)
     result = d->items[((d->tail - 1) + d->capacity) % d->capacity]
-    release(?d->mutex)
     notify(?d->if_full)
-    return result
+    release(?d->mutex)
 
 
 

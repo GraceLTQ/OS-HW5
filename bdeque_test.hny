@@ -46,22 +46,34 @@ def put_right_test(self):
 def get_left_test(self):
     print("call get_left", self)
     let v = bdeque.get_left(?bd):
-        print("done get_left", self, v)
+        if v == None:
+            print("value is None")
+        else:
+            print("done get_left", self, v)
 
 def get_right_test(self):
     print("call get_right", self)
     let v = bdeque.get_right(?bd):
-        print("done get_right", self, v)
+        if v == None:
+            print("value is None")
+        else:
+            print("done get_right", self, v)
 
 def peek_left_test(self):
     print("call peek_left", self)
     let v = bdeque.peek_left(?bd):
-        print("done peek_left", self, v)
+        if v == None:
+            print("value is None")
+        else:
+            print("done peek_left", self, v)
 
 def peek_right_test(self):
     print("call peek_right", self)
     let v = bdeque.peek_right(?bd):
-        print("done peek_right", self, v)
+        if v == None:
+            print("value is None")
+        else:
+            print("done peek_right", self, v)
 
 # Spawn put_left and put_right operations
 for i in {1..N_PUT_LEFT}:
