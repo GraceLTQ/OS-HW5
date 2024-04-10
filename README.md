@@ -26,9 +26,9 @@ The implementation should not use a linked list, and should not import the mallo
 You should use a lock and condition variables for the implementation. Ideally, no threads should be notified (woken up) unless they can complete the operation. So while it is possible to implement this assignment with a single condition variable, it would be better to use a condition variable per specific waiting condition.
 
 ## Testing.
-You also should create a test program, in file bdeque test.hny, for your bdeque. Note that the test should be a black box test—it cannot look inside the implementation of the bdeque. We should be able to run your test program with somebody else’s implementation of the bdeque. So, you should not deference the bdeque pointer to see what’s in it—you can only use the bdeque interface in your test program.
+You also should create a test program, in file bdeque_test.hny, for your bdeque. Note that the test should be a black box test—it cannot look inside the implementation of the bdeque. We should be able to run your test program with somebody else’s implementation of the bdeque. So, you should not deference the bdeque pointer to see what’s in it—you can only use the bdeque interface in your test program.
 
-Testing should be based on comparing behaviors between the specification and the implemen- tation (a form of differential testing). Model your test program after the queue btest1.hny test program from the Harmony book. It should import bdeque, not bdeque impl. It should allocate a single bdeque using Bdeque(SIZE). The program should define the following constants. in the program:
+Testing should be based on comparing behaviors between the specification and the implemen- tation (a form of differential testing). Model your test program after the queue_btest1.hny test program from the Harmony book. It should import bdeque, not bdeque_impl.hny It should allocate a single bdeque using Bdeque(SIZE). The program should define the following constants. in the program:
 
 - SIZE = 2: the size of the bounded buffer.
 - N_PUT_RIGHT = 2: the number of threads that execute a put right operation.

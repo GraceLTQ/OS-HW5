@@ -1,6 +1,6 @@
 from synch import Lock, Condition;
 
-def Bdeque() returns bd:
+def Bdeque(n) returns bd:
     """
     returns the initial value of an empty bdeque with at most n elements.
     """
@@ -49,7 +49,9 @@ def put_right(d, v):
 
 def get_left(d):
     """
-    d points to a bdeque. If the bdeque is empty, the operation should wait. Otherwise it should remove and return the value at the left-end of the bdeque.
+    d points to a bdeque. 
+    If the bdeque is empty, the operation should wait. 
+    Otherwise it should remove and return the value at the left-end of the bdeque.
     """
     acquire(?d->mutex)
     while d->size == 0:

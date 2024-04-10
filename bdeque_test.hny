@@ -1,0 +1,85 @@
+# Below is the sample code from the textbook: "queue_btest1.hny"
+
+# import queue
+
+# const NOPS = 4
+# q = queue.Queue()
+
+# def put_test(self):
+#     print("call put", self)
+#     queue.put(?q, self)
+#     print("done put", self)
+
+# def get_test(self):
+#     print("call get", self)
+#     let v = queue.get(?q):
+#         print("done get", self, v)
+
+# nputs = choose {1..NOPS-1}
+# for i in {1..nputs}:
+#     spawn put_test(i)
+# for i in {1..NOPS-nputs}:
+#     spawn get_test(i)
+
+import bdeque
+
+const SIZE = 2  # the size of the bounded buffer
+const N_PUT_LEFT = 1  # the number of threads that execute a put left operation
+const N_PUT_RIGHT = 2  # the number of threads that execute a put right operation
+const N_GET_LEFT = 1  # the number of threads that execute a get left operation
+const N_GET_RIGHT = 1  # the number of threads that execute a get right operation
+const N_PEEK_LEFT = 0  # the number of threads that execute a peek left operation (optional for this test script)
+const N_PEEK_RIGHT = 1  # the number of threads that execute a peek right operation (optional for this test script)
+
+bd = bdeque.Bdeque(SIZE)
+
+def put_left_test(self):
+    print("call put_left", (self, "left"))
+    bdeque.put_left(?bd, (self, "left"))
+    print("done put_left", (self, "left"))
+
+def put_right_test(self):
+    print("call put_right", (self, "right"))
+    bdeque.put_right(?bd, (self, "right"))
+    print("done put_right", (self, "right"))
+
+def get_left_test(self):
+    print("call get_left", self)
+    let v = bdeque.get_left(?bd):
+        print("done get_left", self, v)
+
+def get_right_test(self):
+    print("call get_right", self)
+    let v = bdeque.get_right(?bd):
+        print("done get_right", self, v)
+
+def peek_left_test(self):
+    print("call peek_left", self)
+    let v = bdeque.peek_left(?bd):
+        print("done peek_left", self, v)
+
+def peek_right_test(self):
+    print("call peek_right", self)
+    let v = bdeque.peek_right(?bd):
+        print("done peek_right", self, v)
+
+# Spawn put_left and put_right operations
+for i in {1..N_PUT_LEFT}:
+    spawn put_left_test(i)
+
+for i in {1..N_PUT_RIGHT}:
+    spawn put_right_test(i)
+
+# Spawn get_left and get_right operations
+for i in {1..N_GET_LEFT}:
+    spawn get_left_test(i)
+
+for i in {1..N_GET_RIGHT}:
+    spawn get_right_test(i)
+
+# Optionally, spawn peek_left and peek_right operations if testing these
+for i in {1..N_PEEK_LEFT}:
+    spawn peek_left_test(i)
+
+for i in {1..N_PEEK_RIGHT}:
+    spawn peek_right_test(i)
