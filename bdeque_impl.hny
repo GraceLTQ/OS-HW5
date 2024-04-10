@@ -6,8 +6,9 @@ def Bdeque(n) returns bd:
     """
     bd = {
         .mutex: Lock(),
-        .if_full: Condition(),
-        .if_empty: Condition(),
+        .put: Condition(),
+        .get: Condition(),
+        .peek: Condition(),
         .items: [None] * n,
         .capacity: n,
         .size: 0,
@@ -24,11 +25,11 @@ def put_left(d, v):
     """
     acquire(?d->mutex)
     while d->size == d->capacity:
-        wait(?d->if_full, ?d->mutex)
+        wait(?d->put, ?d->mutex)
     d->head = ((d->head - 1) + d->capacity) % d->capacity
     d->items[d->head] = v
     d->size += 1
-    notify(?d->if_empty)
+    # notify(?d->if_empty)
     release(?d->mutex)
 
 def put_right(d, v):
@@ -40,11 +41,11 @@ def put_right(d, v):
     """
     acquire(?d->mutex)
     while d->size == d->capacity:
-        wait(?d->if_full, ?d->mutex)
+        wait(?d->put, ?d->mutex)
     d->items[d->tail] = v
     d->tail = (d->tail + 1) % d->capacity
     d->size += 1
-    notify(?d->if_empty)
+    # notify(?d->if_empty)
     release(?d->mutex)
 
 def get_left(d):
@@ -55,11 +56,11 @@ def get_left(d):
     """
     acquire(?d->mutex)
     while d->size == 0:
-        wait(?d->if_empty, ?d->mutex)
+        wait(?d->get, ?d->mutex)
     result = d->items[d->head]
     d->head = (d->head + 1) % d->capacity
     d->size -= 1
-    notify(?d->if_full)
+    # notify(?d->if_full)
     release(?d->mutex)
 
 def get_right(d):
@@ -70,11 +71,11 @@ def get_right(d):
     """
     acquire(?d->mutex)
     while d->size == 0:
-        wait(?d->if_empty, ?d->mutex)
+        wait(?d->put, ?d->mutex)
     d->tail = ((d->tail - 1) + d->capacity) % d->capacity
     result = d->items[d->tail]
     d->size -= 1
-    notify(?d->if_full)
+    # notify(?d->if_full)
     release(?d->mutex)
 
 def peek_left(d):
@@ -85,7 +86,7 @@ def peek_left(d):
     """
     acquire(?d->mutex)
     while d->size == 0:
-        wait(?d->if_empty, ?d->mutex)
+        wait(?d->peek, ?d->mutex)
     result = d->items[d->head]
     release(?d->mutex)
     return result
@@ -98,7 +99,7 @@ def peek_right(d):
     """ 
     acquire(?d->mutex)
     while d->size == 0:
-        wait(?d->if_empty, ?d->mutex)
+        wait(?d->peek, ?d->mutex)
     result = d->items[((d->tail - 1) + d->capacity) % d->capacity]
     release(?d->mutex)
     return result

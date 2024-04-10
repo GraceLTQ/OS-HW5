@@ -4,7 +4,7 @@ def Bdeque(n) returns empty:
     """
     returns the initial value of an empty bdeque with at most n elements.
     """
-    empty = [None] * n
+    empty = { .buffer: [], .size: n }
 
 def put_left(d, v):
     """
@@ -16,6 +16,7 @@ def put_left(d, v):
     # lst = list(!d)
     if !d[-1] == None:
         atomically !d = [v,] + subseq(!d, 0, len(!d) - 1)
+        size += 1
 
 def put_right(d, v):
     """
@@ -29,6 +30,7 @@ def put_right(d, v):
             if !d[i] == None:
                 atomically !d[i] = v
                 break
+        size += 1
 
 def get_left(d):
     """
@@ -39,6 +41,7 @@ def get_left(d):
     await !d[0] != None
     result = !d[0]
     atomically !d = subseq(!d, 1, len(!d))
+    size -= 1
     return result
 
 
@@ -52,6 +55,7 @@ def get_right(d):
     await !d[0] != None
     result = !d[-1]
     atomically !d = subseq(!d, 0, len(!d) - 1)
+    size -= 1
     return result
 
 def peek_left(d):
