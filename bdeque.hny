@@ -14,9 +14,10 @@ def put_left(d, v):
     Should block if the bdeque is full.
     """
     # lst = list(!d)
-    if !d[-1] == None:
-        atomically !d = [v,] + subseq(!d, 0, len(!d) - 1)
-        size += 1
+    # if !d[-1] == None:
+    atomically when len(d->buffer) < d->size:
+        d->buffer = [v,] + d->buffer
+        d->size += 1
 
 def put_right(d, v):
     """
@@ -25,58 +26,56 @@ def put_right(d, v):
     Does not return a value. 
     Should block if the bdeque is full.
     """
-    if !d[-1] == None:
-        for i in range(len(!d)):
-            if !d[i] == None:
-                atomically !d[i] = v
-                break
-        size += 1
+    atomically when len(d->buffer) < d->size:
+        d->buffer = d->buffer + [v,]
+        d->size += 1
 
-def get_left(d):
+def get_left(d) returns result:
     """
     d points to a bdeque. 
     If the bdeque is empty, the operation should wait. 
     Otherwise it should remove and return the value at the left-end of the bdeque.
     """
-    await !d[0] != None
-    result = !d[0]
-    atomically !d = subseq(!d, 1, len(!d))
-    size -= 1
-    return result
+    atomically when len(d->buffer) != 0:
+        result = d->buffer[0]
+        if len(d->buffer) == 1:
+            d->buffer = []
+        else:
+            del d->buffer[0]
+        d->size -= 1
+    
 
-
-
-def get_right(d):
+def get_right(d) returns result:
     """
     d points to a bdeque. 
     If the bdeque is empty, the operation should wait. 
     Otherwise it should remove and return the value at the right-end of the bdeque.
     """
-    await !d[0] != None
-    result = !d[-1]
-    atomically !d = subseq(!d, 0, len(!d) - 1)
-    size -= 1
-    return result
+    atomically when len(d->buffer) != 0:
+        result = d->buffer[len(d->buffer) - 1]
+        if len(d->buffer) == 1:
+            d->buffer = []
+        else:
+            del d->buffer[len(d->buffer) - 1]
+        d->size -= 1
 
-def peek_left(d):
+def peek_left(d) returns result :
     """
     d points to a bdeque. 
     If the bdeque is empty, the operation should wait. 
     Otherwise it should return the value at the left-end of the bdeque.
     """
-    await !d[0] != None
-    result = !d[0]
-    return result
+    atomically when len(d->buffer) != 0:
+        result = d->buffer[0]
 
-def peek_right(d):
+def peek_right(d) returns result:
     """
     d points to a bdeque.
     If the bdeque is empty, the operation should wait.
     Otherwise it should return the value at the right-end of the bdeque.
     """ 
-    await !d[0] != None
-    result = !d[-1]
-    return result
+    atomically when len(d->buffer) != 0:
+        result = d->buffer[len(d->buffer) - 1]
 
 
 
